@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Votación Personalizable</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .votacion, .admin {
+      background: white;
+      padding: 20px;
+      margin: 20px auto;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      max-width: 750px;
+    }
+    .opcion {
+      margin: 15px;
+      display: inline-block;
+      width: 200px;
+    }
+    .opcion img {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 5px;
+    }
+    .opcion button {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    input, select {
+      padding: 8px;
+      margin: 5px;
+      width: 90%;
+    }
+    .resultado {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="votacion">
+    <h1 id="pregunta">¿Cuál es tu fruta favorita?</h1>
+    <div id="opciones" style="display: flex; flex-wrap: wrap; justify-content: center;"></div>
+    <div id="resultados" class="resultado"></div>
+  </div>
+
+  <div class="admin">
+    <h2>🛠️ Panel de Configuración</h2>
+    <input type="text" id="nuevaPregunta" placeholder="Nueva pregunta"><br>
+
+    <div id="editorOpciones">
+      <div class="grupo">
+        <input type="text" class="nombreOpcion" placeholder="Nombre opción 1">
+        <input type="text" class="imagenOpcion" placeholder="URL imagen 1">
+      </div>
+      <div class="grupo">
+        <input type="text" class="nombreOpcion" placeholder="Nombre opción 2">
+        <input type="text" class="imagenOpcion" placeholder="URL imagen 2">
+      </div>
+    </div>
+    <button onclick="agregarGrupo()">➕ Agregar Opción</button><br><br>
+
+    <h3>🎨 Personalización de Estilo</h3>
+    <select id="fuente">
+      <option value="Arial">Arial</option>
+      <option value="Comic Sans MS">Comic Sans</option>
+      <option value="Courier New">Courier</option>
+      <option value="Georgia">Georgia</option>
+    </select>
+    <input type="color" id="colorTexto" value="#000000">
+    <input type="color" id="colorFondo" value="#ffffff">
+    <label><input type="checkbox" id="mostrarBorde"> Mostrar borde</label><br><br>
+
+    <button onclick="modificarVotacion()">Actualizar Votación</button>
+    <button onclick="reiniciarVotos()">🔄 Reiniciar Votos</button><br><br>
+
+    <button onclick="generarLink()">🔗 Generar Enlace</button>
+    <p id="linkGenerado"></p>
+  </div>
+
+  <script>
+    let votos = {};
+    let opciones = [
+      { nombre: "Manzana", imagen: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Red_Apple.jpg/200px-Red_Apple.jpg" },
+      { nombre: "Banana", imagen: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Banana-Single.jpg/200px-Banana-Single.jpg" }
+    ];
+
+    function iniciar() {
+      document.getElementById("pregunta").textContent = "¿Cuál es tu fruta favorita?";
+      renderOpciones();
+    }
+
+    function renderOpciones() {
+      const contenedor = document.getElementById("opciones");
+      const resultados = document.getElementById("resultados");
+      contenedor.innerHTML = "";
+      resultados.innerHTML = "";
+
+      const estilo = obtenerEstilo();
+
+      opciones.forEach(op => {
+        votos[op.nombre] = votos[op.nombre] || 0;
+
+        const div = document.createElement("div");
+        div.className = "opcion";
+
+        const img = document.createElement("img");
+        img.src = op.imagen;
+        img.alt = op.nombre;
+
+        const btn = document.createElement("button");
+        btn.textContent = op.nombre;
+        btn.onclick = () => {
+          votos[op.nombre]++;
+          renderResultados();
+        };
+
+        btn.style.fontFamily = estilo.fuente;
+        btn.style.color = estilo.colorTexto;
+        btn.style.background = estilo.colorFondo;
+        btn.style.border = estilo.borde ? "2px solid #000" : "none";
+
+        div.appendChild(img);
+        div.appendChild(btn);
+        contenedor.appendChild(div);
+      });
+      renderResultados();
+    }
+
+    function renderResultados() {
+      const resultados = document.getElementById("resultados");
+      resultados.innerHTML = "";
+      opciones.forEach(op => {
+        const p = document.createElement("p");
+        p.textContent = `${op.nombre}: ${votos[op.nombre]} votos`;
+        resultados.appendChild(p);
+      });
+    }
+
+    function modificarVotacion() {
+      const nueva = document.getElementById("nuevaPregunta").value;
+      const nombres = document.querySelectorAll(".nombreOpcion");
+      const imagenes = document.querySelectorAll(".imagenOpcion");
+      const nuevasOpciones = [];
+
+      for (let i = 0; i < nombres.length; i++) {
+        const nombre = nombres[i].value.trim();
+        const imagen = imagenes[i].value.trim();
+        if (nombre) nuevasOpciones.push({ nombre, imagen });
+      }
+
+      if (nueva.trim()) document.getElementById("pregunta").textContent = nueva;
+
+      if (nuevasOpciones.length > 0) {
+        opciones = nuevasOpciones;
+        votos = {};
+        renderOpciones();
+      }
+    }
+
+    function agregarGrupo() {
+      const editor = document.getElementById("editorOpciones");
+      const grupo = document.createElement("div");
+      grupo.className = "grupo";
+
+      const nombre = document.createElement("input");
+      nombre.type = "text";
+      nombre.className = "nombreOpcion";
+      nombre.placeholder = "Nombre opción";
+
+      const imagen = document.createElement("input");
+      imagen.type = "text";
+      imagen.className = "imagenOpcion";
+      imagen.placeholder = "URL imagen";
+
+      grupo.appendChild(nombre);
+      grupo.appendChild(imagen);
+      editor.appendChild(grupo);
+    }
+
+    function reiniciarVotos() {
+      opciones.forEach(op => votos[op.nombre] = 0);
+      renderResultados();
+    }
+
+    function obtenerEstilo() {
+      return {
+        fuente: document.getElementById("fuente").value,
+        colorTexto: document.getElementById("colorTexto").value,
+        colorFondo: document.getElementById("colorFondo").value,
+        borde: document.getElementById("mostrarBorde").checked
+      };
+    }
+
+    function generarLink() {
+      const data = {
+        pregunta: document.getElementById("pregunta").textContent,
+        opciones,
+        estilo: obtenerEstilo()
+      };
+      const link = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+      document.getElementById("linkGenerado").innerHTML = `<a href="${link}" download="votacion.json">Descargar configuración</a>`;
+    }
+
+    iniciar();
+  </script>
+
+</body>
+</html>
