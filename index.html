@@ -99,6 +99,12 @@
     ];
 
     function iniciar() {
+// Si no hay ?admin en la URL, ocultar el panel
+if (!window.location.search.includes("admin")) {
+  document.querySelector(".admin").style.display = "none";
+  document.getElementById("resultados").style.display = "none";
+}
+
       document.getElementById("pregunta").textContent = "¿Cuál es tu fruta favorita?";
       renderOpciones();
     }
